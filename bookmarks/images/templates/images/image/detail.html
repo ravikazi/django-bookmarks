@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}{{ image.title }}{% endblock %}
+{% block content %}
+	<!-- Page Heading -->
+	<style>
+.total {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+
+.like{
+	background-color: #4CAF50; /* Green */
+	border: none;
+	color: white;
+	padding: 15px 32px;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 16px;
+	margin: 4px 2px;
+	cursor: pointer;
+	float: right;
+}
+
+</style>
+	<div class="d-sm-flex align-items-center justify-content-between mb-4">
+		<h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+	</div>
+	<hr>
+	{% if messages %}
+	    {% for message in messages %}
+	      <div class="alert {% if message.tags %} alert-{{ message.tags }}{% endif %}">{{ message|safe }} <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span></div>
+	    {% endfor %}
+	{% endif %}
+
+
+	{% load thumbnail %}
+	<div class="row">
+		<div class="col-md-5" align="right">
+			{% thumbnail image.image '300' as im %}
+				<!-- <a href="{{ image.image.url }}"> -->
+					<img src="{{ im.url }}" class="image-detal">
+				<!-- </a> -->
+			{% endthumbnail %}
+		</div>
+		<div class="col-md-7">
+			<h1 class="h3 mb-0 text-gray-800">{{ image.title }}</h1>
+			{% with total_likes=image.users_like.count users_like=image.users_like.all %}
+				<div class="image-info">
+					<div class="count">
+						<span class="total">{{ total_likes }} like{{ total_likes|pluralize }}</span>
+						<a href="#" data-id="{{ image.id }}" data-action="{% if request.user in image.users_like.all %}un{% endif %}like" class="like">{% if request.user not in image.users_like.all %}Like{% else %}Unlike{% endif %}</a>
+					</div>
+					{{ image.description|linebreaks }}
+				</div>
+				<hr>
+				<div class="image-likes">
+					{% for user in image.users_like.all %}
+					
+						<div class="col-md-4">
+							<img src="{{ user.profile.photo.url }}" style="width: 180px;height: 180px;border-radius: 50%;">
+							<p>{{ user.first_name }}</p>
+						</div>
+
+					{% empty %}
+						Nobody likes this image yet.
+					{% endfor %}
+				</div>
+
+			{% endwith %}
+		</div>
+	</div>
+{% endblock %}
+
+{% block domready %}
+	$('a.like').click(function(e){
+		e.preventDefault();
+		$.post(
+			'{% url 'images:like' %}',
+			{
+				id: $(this).data('id'),
+				action: $(this).data('action'),
+			},
+			function(data){
+				if (data['status']=='ok'){
+					var previous_action = $('a.like').data('action');
+					
+					$('a.like').data('action',previous_action=='like' ? 'unlike': 'like');
+					$('a.like').text(previous_action=='like' ? 'Unlike': 'Like');
+					
+					var previous_likes = parseInt($('span.count .total').text());
+					$('span.count .total').text(previous_action=='like' ? previous_likes: 'total_likes');
+				}
+			}
+		);
+	});
+{% endblock %}
+
+

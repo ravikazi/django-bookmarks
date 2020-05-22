@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}{{ user.get_full_name }}{% endblock %}
+{% load thumbnail %}
+{% block content %}
+	<!-- Page Heading -->
+	<style>
+.total {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+
+.follow-btn{
+	background-color: #4CAF50; /* Green */
+	border: none;
+	color: white;
+	padding: 15px 32px;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 16px;
+	margin: 4px 2px;
+	cursor: pointer;
+	float: right;
+}
+
+</style>
+	<div class="d-sm-flex align-items-center justify-content-between mb-4">
+		<h1 class="h3 mb-0 text-gray-800">{{ user.get_full_name }}</h1>
+	</div>
+	<hr>
+	<!-- {% if messages %}
+	    {% for message in messages %}
+	      <div class="alert {% if message.tags %} alert-{{ message.tags }}{% endif %}">{{ message|safe }} <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span></div>
+	    {% endfor %}
+	{% endif %} -->
+
+
+	<div class="row">
+		<div class="col-md-2" align="right">
+			{% thumbnail user.profile.photo '180x180' as im %}
+				<img src="{{ im.url }}"  style="border-radius: 50%;">
+			{% endthumbnail %}
+		</div>
+		<div class="col-md-10">
+			<h1 class="h3 mb-0 text-gray-800">{{ user.get_full_name }}</h1>
+
+			{% with total_followers=user.followers.count %}
+				<div class="image-info">
+					<div class="count">
+						<span class="total">{{ total_followers }} Follower{{ total_followers|pluralize }}</span>
+						<a href="#" data-id="{{ user.id }}" data-action="{% if request.user in user.followers.all %}un{% endif %}follow" class="follow follow-btn">
+							{% if request.user not in user.followers.all %}
+								Follow
+							{% else %}
+								Unfollow
+							{% endif %}
+						</a>
+					</div>
+				</div>
+			{% endwith %}
+			<hr>
+			<div class="image-list" class="image-container">
+				{% include "images/image/list_ajax.html" with images=user.images_created.all %}
+			</div>
+		</div>
+	</div>
+{% endblock %}
+
+
+{% block domready %}
+    $("a.follow").click(function (e) {
+        e.preventDefault();
+        var serializedData = $(this).data();
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'user_follow' %}",
+            data: serializedData,
+            success: function (response) {
+                if (response['status']=='ok'){
+					var previous_action = $('a.follow').data('action');
+					
+					$('a.follow').data('action',previous_action=='follow' ? 'unfollow': 'follow');
+					$('a.follow').text(previous_action=='follow' ? 'Unfollow': 'Follow');
+					
+					var previous_followers = parseInt($('span.count .total').text());
+					$('span.count .total').text(previous_action=='follow' ? previous_followers: 'total_followers');
+				}
+            }
+        })
+    })
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}People{% endblock %}
+{% load thumbnail %}
+{% block content %}
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+	<h1 class="h3 mb-0 text-gray-800">People</h1>
+</div>
+<hr>
+<div class="row" id="people-list">
+	{% for user in users %}
+	<div class="col-md-4">
+		<div class="thumbnail">
+			<a href="{{ user.get_absolute_url }}" target="_blank">
+				{% thumbnail user.profile.photo "180x180" crop="100%" as im %}
+					<a href="{{ user.get_absolute_url }}">
+						<img src="{{ im.url }}" style="border-radius: 50%;">
+					</a>
+				{% endthumbnail %}
+          		<div class="caption">
+            		<p><a href="{{ user.get_absolute_url }}" class="title">{{ user.get_full_name }}</a></p>
+          		</div>
+        	</a>
+		</div>
+	</div>
+	{% endfor %}
+</div>
+{% endblock %}

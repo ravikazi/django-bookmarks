@@ -1,0 +1,18 @@
+
+	{% load thumbnail %}
+	{% for image in images %}
+	<div class="col-md-4">
+		<div class="thumbnail">
+			<a href="{{ image.get_absolute_url }}" target="_blank">
+				{% thumbnail image.image "300x300" crop="100%" as im %}
+					<a href="{{ image.get_absolute_url }}">
+						<img src="{{ im.url }}" style="width:100%">
+					</a>
+				{% endthumbnail %}
+          		<div class="caption">
+            		<p><a href="{{ image.get_absolute_url }}" class="title">{{ image.title }}</a></p>
+          		</div>
+        	</a>
+		</div>
+	</div>
+	{% endfor %}
